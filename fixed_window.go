@@ -7,16 +7,16 @@ import (
 
 type FWLimiter struct {
 	requestsLimit int
-	window        time.Duration
+	windowSize    time.Duration
 	requests      int
 	reset         time.Time
 	mu            sync.Mutex
 }
 
-func NewFWLimiter(requestsLimit int, window time.Duration) *FWLimiter {
+func NewFWLimiter(requestsLimit int, windowSize time.Duration) *FWLimiter {
 	return &FWLimiter{
 		requestsLimit: requestsLimit,
-		window:        window,
+		windowSize:	windowSize,
 	}
 }
 
@@ -27,12 +27,12 @@ func (fwl *FWLimiter) Allow() bool {
 	current := time.Now()
 
 	if fwl.reset.IsZero() {
-		fwl.reset = current.Add(fwl.window)
+		fwl.reset = current.Add(fwl.windowSize)
 	}
 
 	if current.After(fwl.reset) {
 		fwl.requests = 0
-		fwl.reset = current.Add(fwl.window)
+		fwl.reset = current.Add(fwl.windowSize)
 	}
 
 	if fwl.requests < fwl.requestsLimit {
