@@ -23,16 +23,19 @@ func NewSWLimiter(requestsLimit int, windowSize time.Duration) *SWLimiter {
 }
 
 func (swl *SWLimiter) Allow() bool {
+	return swl.process(time.Now())
+}
+
+func (swl *SWLimiter) process(now time.Time) bool {
 	swl.mu.Lock()
 	defer swl.mu.Unlock()
 
-	now := time.Now()
 	swl.updateWindows(now)
 
 	timeElapsed := float64(now.Sub(swl.currWindow.start))
 	size := float64(swl.windowSize)
 	weight := (size - timeElapsed) / size
-	limitApproximation := int(float64(swl.prevWindow.count)*weight) + swl.currWindow.count
+	limitApproximation := int(weight*float64(swl.prevWindow.count)) + swl.currWindow.count
 
 	if limitApproximation < swl.requestsLimit {
 		swl.currWindow.count += 1
@@ -53,8 +56,8 @@ func (swl *SWLimiter) updateWindows(now time.Time) {
 			prevWinCount = swl.currWindow.count
 		}
 
-		swl.prevWindow.set(currentWinStart, prevWinCount)
-		swl.currWindow.set(current, 0)
+		swl.prevWindow.Set(currentWinStart, prevWinCount)
+		swl.currWindow.Set(current, 0)
 	}
 
 }

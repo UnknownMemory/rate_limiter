@@ -16,7 +16,7 @@ func NewWindow(start time.Time) *Window {
 	}
 }
 
-func (w *Window) set(start time.Time, count int) {
+func (w *Window) Set(start time.Time, count int) {
 	w.start = start
 	w.count = count
 }
